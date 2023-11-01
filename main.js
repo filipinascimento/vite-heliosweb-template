@@ -1,118 +1,152 @@
-import * as d3 from "d3"
+import {Helios,xnet} from "helios-web";
+
+// Zachary Karate Club Network
+let nodes = {
+  '0': { faction: 1},
+  '1': { faction: 1},
+  '2': { faction: 1},
+  '3': { faction: 1},
+  '4': { faction: 1},
+  '5': { faction: 1},
+  '6': { faction: 1},
+  '7': { faction: 1},
+  '8': { faction: 2},
+  '9': { faction: 2},
+  '10': { faction: 1},
+  '11': { faction: 1},
+  '12': { faction: 1},
+  '13': { faction: 1},
+  '14': { faction: 2},
+  '15': { faction: 2},
+  '16': { faction: 1},
+  '17': { faction: 1},
+  '18': { faction: 2},
+  '19': { faction: 1},
+  '20': { faction: 2},
+  '21': { faction: 1},
+  '22': { faction: 2},
+  '23': { faction: 2},
+  '24': { faction: 2},
+  '25': { faction: 2},
+  '26': { faction: 2},
+  '27': { faction: 2},
+  '28': { faction: 2},
+  '29': { faction: 2},
+  '30': { faction: 2},
+  '31': { faction: 2},
+  '32': { faction: 2},
+  '33': { faction: 2}
+};
+
+// Edges are arrays of node ids
+let edges = [
+  { source: '0', target: '1' },
+  { source: '0', target: '2' },
+  { source: '0', target: '3' },
+  { source: '0', target: '4' },
+  { source: '0', target: '5' },
+  { source: '0', target: '6' },
+  { source: '0', target: '7' },
+  { source: '0', target: '8' },
+  { source: '0', target: '10' },
+  { source: '0', target: '11' },
+  { source: '0', target: '12' },
+  { source: '0', target: '13' },
+  { source: '0', target: '17' },
+  { source: '0', target: '19' },
+  { source: '0', target: '21' },
+  { source: '0', target: '31' },
+  { source: '1', target: '2' },
+  { source: '1', target: '3' },
+  { source: '1', target: '7' },
+  { source: '1', target: '13' },
+  { source: '1', target: '17' },
+  { source: '1', target: '19' },
+  { source: '1', target: '21' },
+  { source: '1', target: '30' },
+  { source: '2', target: '3' },
+  { source: '2', target: '7' },
+  { source: '2', target: '8' },
+  { source: '2', target: '9' },
+  { source: '2', target: '13' },
+  { source: '2', target: '27' },
+  { source: '2', target: '28' },
+  { source: '2', target: '32' },
+  { source: '3', target: '7' },
+  { source: '3', target: '12' },
+  { source: '3', target: '13' },
+  { source: '4', target: '6' },
+  { source: '4', target: '10' },
+  { source: '5', target: '6' },
+  { source: '5', target: '10' },
+  { source: '5', target: '16' },
+  { source: '6', target: '16' },
+  { source: '8', target: '30' },
+  { source: '8', target: '32' },
+  { source: '8', target: '33' },
+  { source: '9', target: '33' },
+  { source: '13', target: '33' },
+  { source: '14', target: '32' },
+  { source: '14', target: '33' },
+  { source: '15', target: '32' },
+  { source: '15', target: '33' },
+  { source: '18', target: '32' },
+  { source: '18', target: '33' },
+  { source: '19', target: '33' },
+  { source: '20', target: '32' },
+  { source: '20', target: '33' },
+  { source: '22', target: '32' },
+  { source: '22', target: '33' },
+  { source: '23', target: '25' },
+  { source: '23', target: '27' },
+  { source: '23', target: '29' },
+  { source: '23', target: '32' },
+  { source: '23', target: '33' },
+  { source: '24', target: '25' },
+  { source: '24', target: '27' },
+  { source: '24', target: '31' },
+  { source: '25', target: '31' },
+  { source: '26', target: '29' },
+  { source: '26', target: '33' },
+  { source: '27', target: '33' },
+  { source: '28', target: '31' },
+  { source: '28', target: '33' },
+  { source: '29', target: '32' },
+  { source: '29', target: '33' },
+  { source: '30', target: '32' },
+  { source: '30', target: '33' },
+  { source: '31', target: '32' },
+  { source: '31', target: '33' },
+  { source: '32', target: '33' }
+];
 
 
-let canvasSelect = d3.select("body")
-  .append("canvas")
-  .attr("width", 960)
-  .attr("height", 500);
 
-let context = canvasSelect.node().getContext("2d");
+let color1 = [0.23,0.45,0.68];
+let color2 = [0.70,0.78,0.90];
 
-let width = canvasSelect.property("width");
-let height = canvasSelect.property("height");
+Object.values(nodes).forEach(node=>{
+  node.color = (node.faction==1)?color1:color2;
+}) 
 
-// Create random points and save them to dataX, dataY
-const randomX = d3.randomNormal(width / 2, 80);
-const randomY = d3.randomNormal(height / 2, 80);
-// Just generate uniform random numbers
-const whiteNoise = d3.randomUniform(0, 1);
-let data = Array.from({ length: 100000 }, () => [randomX(), randomY(), whiteNoise()]);
-let quadtree = d3.quadtree()
-  .extent(d3.extent(data, ([x, y,_]) => [x, y]))
-  .addAll(data);
 
-const r = 1.5; // Radius of circle
-
-d3.select(context.canvas)
-  .call(d3.zoom()
-    .scaleExtent([1, 50])
-    .on("zoom", ({ transform }) => zoomed(transform)));
-
+let helios = new Helios({
+		elementID: "netviz", // ID of the element to render the network in
+		nodes: nodes, // Dictionary of nodes 
+		edges: edges, // Array of edges
+		use2D: false, // Choose between 2D or 3D layouts
+	});
   
-function search(quadtree, xmin, ymin, xmax, ymax) {
-  const results = [];
-  quadtree.visit((node, x1, y1, x2, y2) => {
-    if (!node.length) {
-      do {
-        let d = node.data;
-        if (d[0] >= xmin && d[0] < xmax && d[1] >= ymin && d[1] < ymax) {
-          results.push(d);
-        }
-      } while (node = node.next);
-    }
-    return x1 >= xmax || y1 >= ymax || x2 < xmin || y2 < ymin;
-  });
-  return results;
-}
 
-function zoomed(transform) {
-  // console.log(transform)
-  context.save();
-  context.clearRect(0, 0, width, height);
-  context.translate(transform.x, transform.y);
-  context.scale(transform.k, transform.k);
-  context.beginPath();
-
-  let origin = transform.invert([0, 0]);
-  let endingPoint = transform.invert([width, height]);
-
-  let x0 = origin[0];
-  let y0 = origin[1];
-
-  let x1 = endingPoint[0];
-  let y1 = endingPoint[1];
-
-  // reduce size of rectangle by 0.9
-  let dx = (x1 - x0) * 0.1;
-  let dy = (y1 - y0) * 0.1;
-
-  x0 += dx;
-  x1 -= dx;
-  y0 += dy;
-  y1 -= dy;
-
-  let samplePoints = search(quadtree, x0, y0, x1, y1);
-  // shuffle the sample points according to pre calculated white noise
-  // samplePoints.sort((a, b) => a[2] - b[2]);
-  // limit the number of sample points to 1000
-
-  let sampleProbability =1.0;
-  if(samplePoints.length>1000){
-    sampleProbability = 1000.0/samplePoints.length;
-  }
-
-  for (const [x, y, w] of samplePoints) {
-    if(sampleProbability<1.0 && w>sampleProbability){
-      continue;
-    }
-    context.moveTo(x + r, y);
-    context.arc(x, y, 2.0*Math.sqrt(1.0/transform.k), 0, 2 * Math.PI);
-  }
-
-
-  context.fill();
-
-
-  context.save();
-  context.beginPath();
-  context.moveTo(x0, y0);
-  context.lineTo(x0, y1);
-  context.lineTo(x1, y1);
-  context.lineTo(x1, y0);
-  context.closePath();
-  // red stroke width 3
-  context.strokeStyle = "red";
-  context.lineWidth = 3/transform.k;
-  context.stroke();
-  context.restore();
-  context.restore();
-}
-
-zoomed(d3.zoomIdentity);
-
-
-
-
-
+// Sets the background to black
+helios.backgroundColor([0.0,0.0,0.0,1.0]);
+// Sets global scale for the size of nodes
+helios.nodesGlobalSizeScale(0.5);
+// Sets edge global opacity
+helios.edgesGlobalOpacityScale(0.75);
+// Sets edge global width scale
+helios.edgesGlobalWidthScale(0.1);
+// Set the zoom factor to 20 so the generated network will be close enough
+helios.zoomFactor(20); 
 
 
